@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Student Enrollment Form</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+        <script src="https://unpkg.com/jsonpowerdb/dist/jsonpowerdb.min.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <h2>Student Enrollment Form</h2>
+            <form id="studentForm" method="post">
+                <div class="mb-3">
+                    <label for="rollNo" class="form-label">Roll No:</label>
+                    <input type="text" class="form-control" id="rollNo" placeholder="Enter Roll No" required >
+                </div>
+                <div class="mb-3">
+                    <label for="fullName" class="form-label">Full Name:</label>
+                    <input type="text" class="form-control" id="fullName" placeholder="Enter Full Name" required disabled>
+                </div>
+                <div class="mb-3">
+                    <label for="class" class="form-label">Class:</label>
+                    <input type="text" class="form-control" id="class" placeholder="Enter Class" required disabled> 
+                </div>
+                <div class="mb-3">
+                    <label for="birthDate" class="form-label">Birth Date:</label>
+                    <input type="date" class="form-control" id="birthDate" required disabled>
+                </div>
+                <div class="mb-3">
+                    <label for="address" class="form-label">Address:</label>
+                    <input type="text" class="form-control" id="address" placeholder="Enter Address" required disabled>
+                </div>
+                <div class="mb-3">
+                    <label for="enrollmentDate" class="form-label">Enrollment Date:</label>
+                    <input type="date" class="form-control" id="enrollmentDate" required disabled>
+                </div>
+                <button type="button" class="btn btn-primary" id="saveBtn" onclick="saveEmployee()" disabled>Save</button>
+                <button type="button" class="btn btn-success" id="updateBtn" onclick="studentUpdate()" disabled>Update</button>
+                <button type="reset" class="btn btn-secondary" id="resetBtn" onclick="resetForm()" disabled>Reset</button>
+            </form>
+        </div>
+    </body>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            controllSave();
+        });
+        function controllDisable(){
+            var fName= document.getElementById('fullName');
+            var sclass= document.getElementById('class');
+            var sbirthDate= document.getElementById('birthDate');
+            var saddress= document.getElementById('address');
+            var senrollmentDate= document.getElementById('enrollmentDate');
+            
+            fName.disabled=true;
+            sclass.disabled=true;
+            sbirthDate.disabled=true;
+            saddress.disabled=true;
+            senrollmentDate.disabled=true;
+            
+            
+        }
+        
+        function controllDisable1(){
+            var fName= document.getElementById('fullName');
+            var sclass= document.getElementById('class');
+            var sbirthDate= document.getElementById('birthDate');
+            var saddress= document.getElementById('address');
+            var senrollmentDate= document.getElementById('enrollmentDate');
+            fName.disabled=false;
+            sclass.disabled=false;
+            sbirthDate.disabled=false;
+            saddress.disabled=false;
+            senrollmentDate.disabled=false;
+            
+        }
+        
+        
+        
+        function controllSave() {
+            
+            var stuRollVar = document.getElementById('rollNo');
+            var sbutton = document.getElementById('saveBtn');
+            var rebutten = document.getElementById('resetBtn');
+            var updbutton = document.getElementById('updateBtn');
+            stuRollVar.addEventListener('blur', function () {
+                if (stuRollVar.value.trim() !== '') {
+                    controllDisable1();
+                    rebutten.disabled = false;
+                    var jsonStr = getaStudentData();
+                    var putReqStr = createGetRequest("90931757|-31949307588940779|90963394",
+                            jsonStr, "STUDENT", "STUDATA");
+
+                    jQuery.ajaxSetup({async: false});
+                    var resultObj = executeCommand(putReqStr,
+                            "http://api.login2explore.com:5577", "/api/irl");
+//                    alert("Student enroll successfully");
+
+
+//                    console.log(resultObj.status);
+                    jQuery.ajaxSetup({async: true});
+                    if (resultObj.status === 200) {
+                        var dataObject = JSON.parse(resultObj.data);
+                        fillForm(dataObject.record);
+                        stuRollVar.disabled = true;
+                        sbutton.disabled = true;
+
+                        updbutton.disabled = false;
+
+                    } else {
+                        sbutton.disabled = false;
+
+                        updbutton.disabled = true;
+                    }
+
+
+                }
+            });
+        }
+        function validateAndGetFormData() {
+            var stuRollVar = $("#rollNo").val();
+            if (stuRollVar === "") {
+                alert("Required Roll No");
+                $("#rollNo").focus();
+                return "";
+            }
+
+            var stuNameVar = $("#fullName").val();
+            if (stuNameVar === "") {
+                alert("Name is Required");
+                $("#fullName").focus();
+                return "";
+            }
+            var stuClassVar = $("#class").val();
+            if (stuClassVar === "") {
+                alert("Student class is Required");
+                $("#class").focus();
+                return "";
+            }
+            var stuBirthVar = $("#birthDate").val();
+            if (stuBirthVar === "") {
+                alert("Student birthday is Required");
+                $("#birthDate").focus();
+                return "";
+            }
+            var stuAddressVar = $("#address").val();
+            if (stuAddressVar === "") {
+                alert("Student address is Required");
+                $("#address").focus();
+                return "";
+            }
+            var stuEnrollVar = $("#enrollmentDate").val();
+            if (stuEnrollVar === "") {
+                alert("Student enrollment date is Required");
+                $("#enrollmentDate").focus();
+                return "";
+            }
+            var jsonStrObj = {
+                rollNo: stuRollVar,
+                fullName: stuNameVar,
+                class: stuClassVar,
+                birthDate: stuBirthVar,
+                address: stuAddressVar,
+                enrollmentDate: stuEnrollVar
+            };
+            return JSON.stringify(jsonStrObj);
+        }
+
+        function getaStudentData() {
+            var stuRollVar = $("#rollNo").val();
+            var jsonStrObj = {
+                rollNo: stuRollVar
+            };
+            return JSON.stringify(jsonStrObj);
+        }
+        // This method is used to create PUT Json request.
+        function createPUTRequest(connToken, jsonObj, dbName, relName) {
+            var putRequest = "{\n"
+                    + "\"token\" : \""
+                    + connToken
+                    + "\","
+                    + "\"dbName\": \""
+                    + dbName
+                    + "\",\n" + "\"cmd\" : \"PUT\",\n"
+                    + "\"rel\" : \""
+                    + relName + "\","
+                    + "\"jsonStr\": \n"
+                    + jsonObj
+                    + "\n"
+                    + "}";
+            return putRequest;
+        }
+
+
+        function createGetRequest(connToken, jsonObj, dbName, relName) {
+            var getRequest = "{\n"
+                    + "\"token\" : \""
+                    + connToken
+                    + "\","
+                    + "\"dbName\": \""
+                    + dbName
+                    + "\",\n" + "\"cmd\" : \"GET_BY_KEY\",\n"
+                    + "\"rel\" : \""
+                    + relName + "\","
+                    + "\"jsonStr\": \n"
+                    + jsonObj
+                    + "\n"
+                    + "}";
+            return getRequest;
+        }
+
+
+        function createupdateRequest(connToken, jsonObj, dbName, relName) {
+            var getRequest = "{\n"
+                    + "\"token\" : \""
+                    + connToken
+                    + "\","
+                    + "\"dbName\": \""
+                    + dbName
+                    + "\",\n" + "\"cmd\" : \"UPDATE\",\n"
+                    + "\"rel\" : \""
+                    + relName + "\","
+                    + "\"jsonStr\": \n"
+                    + jsonObj
+                    + "\n"
+                    + "}";
+            return getRequest;
+        }
+
+        function studentUpdate(){
+            var jsonStr = validateAndGetFormData();
+            if (jsonStr === "") {
+                return;
+            }
+            var putReqStr = createupdateRequest("90931757|-31949307588940779|90963394",
+                    jsonStr, "STUDENT", "STUDATA");
+//            alert(putReqStr);
+            jQuery.ajaxSetup({async: false});
+            var resultObj = executeCommand(putReqStr,
+                    "http://api.login2explore.com:5577", "/api/iml");
+            alert("Student update successfully");
+            jQuery.ajaxSetup({async: true});
+
+            resetForm();
+        }
+        
+        
+        function executeCommand(reqString, dbBaseUrl, apiEndPointUrl) {
+            var url = dbBaseUrl + apiEndPointUrl;
+            var jsonObj;
+            $.post(url, reqString, function (result) {
+                jsonObj = JSON.parse(result);
+            }).fail(function (result) {
+                var dataJsonObj = result.responseText;
+                jsonObj = JSON.parse(dataJsonObj);
+            });
+            return jsonObj;
+        }
+        function resetForm() {
+            $("#rollNo").val("");
+            $("#fullName").val("");
+            $("#class").val("");
+            $("#birthDate").val("");
+            $("#address").val("");
+            $("#enrollmentDate").val("");
+            var stuRollVar = document.getElementById('rollNo');
+            stuRollVar.disabled=false;
+            
+            var sbutton = document.getElementById('saveBtn');
+            sbutton.disabled = true;
+            
+             var updbutton = document.getElementById('updateBtn');
+             updbutton.disabled=true;
+             controllDisable();
+             
+             
+        }
+
+        function fillForm(data) {
+
+            $("#fullName").val(data.fullName);
+            $("#class").val(data.class);
+            $("#birthDate").val(data.birthDate);
+            $("#address").val(data.address);
+            $("#enrollmentDate").val(data.enrollmentDate);
+        }
+
+
+        function saveEmployee() {
+//                alert('heeloooe');
+            var jsonStr = validateAndGetFormData();
+            if (jsonStr === "") {
+                return;
+            }
+            var putReqStr = createPUTRequest("90931757|-31949307588940779|90963394",
+                    jsonStr, "STUDENT", "STUDATA");
+//            alert(putReqStr);
+            jQuery.ajaxSetup({async: false});
+            var resultObj = executeCommand(putReqStr,
+                    "http://api.login2explore.com:5577", "/api/iml");
+            alert("Student enroll successfully");
+            jQuery.ajaxSetup({async: true});
+
+            resetForm();
+        }
+
+    </script>
+</html>
